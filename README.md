@@ -34,8 +34,6 @@ limitations.
 
 #### Creating and managing raffles
 
-Using the cli (command line interface):
-
 <!-- Visit https://github.com/draffle-io/draffle
 Look for the cli folder
 - review the documentation
@@ -47,6 +45,23 @@ Look for the cli folder
   - collect proceeds
   - close entrants
 -->
+
+Using the cli (command line interface):
+
+`yarn run create-raffle`
+`yarn run show-raffle`
+
+yarn run add-prize
+
+yarn run buy-tickets
+
+yarn run claim-prize
+
+yarn run collect-proceeds
+
+yarn run reveal-winners
+
+yarn run show-idl # TODO turn into cache-idl and have it save the idl json by program-id
 
 * *TODO(levi):* provide a cli within this application?
 * *TODO(levi):* provide examples?

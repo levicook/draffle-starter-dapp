@@ -1,19 +1,19 @@
 import * as anchor from "@project-serum/anchor"
-import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+import { Commitment, Connection, Keypair, PublicKey } from '@solana/web3.js'
 import { DEFAULT_RPC_HOST, DRAFFLE_PROGRAM_ID } from '../lib/constants'
 import { program as cli } from 'commander'
 
 interface Args {
+    commitment: Commitment,
     rpcHost: string,
     programId: string,
 }
 
-async function connect(args: Args) {
+async function connect() {
+    const args = cli.opts<Args>()
+
     const programId = new PublicKey(args.programId)
-
-    const commitment = 'confirmed' // TODO from args?
-
-    const connection = new Connection(args.rpcHost, commitment)
+    const connection = new Connection(args.rpcHost, args.commitment)
 
     const wallet = new anchor.Wallet(Keypair.generate()) // TODO from args?
 
@@ -33,49 +33,45 @@ async function connect(args: Args) {
 }
 
 async function showIDL() {
-    const args = cli.opts<Args>()
-    const { idl } = await connect(args)
-    const json = JSON.stringify(idl, null, '\t')
-    console.log(json)
+    const { idl } = await connect()
+    console.log(JSON.stringify(idl, null, '  '))
+    process.exit(0)
 }
 
 async function createRaffle() {
-    const args = cli.opts<Args>()
-    console.log('create-raffle', args)
+    console.log('create-raffle')
+    process.exit(0)
 }
 
 async function showRaffle() {
-    const args = cli.opts<Args>()
-    console.log('show-raffle', args)
+    console.log('show-raffle')
+    process.exit(0)
 }
 
 async function addPrize() {
-    const args = cli.opts<Args>()
-    console.log('add-prize', args)
+    console.log('add-prize')
+    process.exit(0)
 }
 
 async function buyTickets() {
-    const args = cli.opts<Args>()
-    console.log('buy-tickets', args)
+    console.log('buy-tickets')
 }
 
 async function revealWinners() {
-    const args = cli.opts<Args>()
-    console.log('reveal-winners', args)
+    console.log('reveal-winners')
 }
 
 async function claimPrize() {
-    const args = cli.opts<Args>()
-    console.log('claim-prize', args)
+    console.log('claim-prize')
 }
 
 async function collectProceeds() {
-    const args = cli.opts<Args>()
-    console.log('collect-proceeds', args)
+    console.log('collect-proceeds')
 }
 
 cli
     .addHelpCommand()
+    .requiredOption('-c, --commitment [string]', 'commitment', 'confirmed')
     .requiredOption('-r, --rpc-host [string]', 'rpc host', DEFAULT_RPC_HOST)
     .requiredOption('-p, --program-id [string]', 'draffle program id', DRAFFLE_PROGRAM_ID)
 
