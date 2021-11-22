@@ -1,34 +1,58 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# dRaffle Starter dApp
 
-## Getting Started
+The dRaffle Starter dApp is designed to let users fork, customize and
+ship their own dRaffle frontend to a custom domain, ultra fast.
 
-First, run the development server:
+## About dRaffle
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+https://github.com/draffle-io/draffle
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+dRaffle is a decentralized raffle protocol built for and deployed on
+Solana. You must **Do Your Own Research** on how this protocol is
+implemented and decide whether it's safe for and appropriate to your use
+case and regulatory constraints.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## About dRaffle Starter dApp
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+The dRaffle Starter dApp provides a starting point for you to implement
+your own raffle, on your own domain.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### What can I expect form this project?
 
-## Learn More
+Absolutly nothing. There are no warranties expressed or implied. There
+are no support promises. Use at your own risk and expect bugs and
+limitations.
 
-To learn more about Next.js, take a look at the following resources:
+### How do you work this thing?
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create and manage raffles using the dRaffle command line interface (cli).
+2. Fork this project
+3. Clone your fork
+4. Configure your fork to use a raffles from step 1
+5. Customize the look, feel and behavior of your fork
+6. Deploy your fork to your own domain
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+#### Creating and managing raffles
 
-## Deploy on Vercel
+Using the cli (command line interface):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+<!-- Visit https://github.com/draffle-io/draffle
+Look for the cli folder
+- review the documentation
+- read and re-read the source
+- chew the glass, on local or devnet, until you know how to:
+  - create and show a raffle
+  - add prizes
+  - reveal winners
+  - collect proceeds
+  - close entrants
+-->
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+* *TODO(levi):* provide a cli within this application?
+* *TODO(levi):* provide examples?
+
+<!-- 
+#### Configure your fork to use a raffles from step 1
+#### Customize the look, feel and behavior of your fork
+#### Deploy your fork to your own domain
+-->
