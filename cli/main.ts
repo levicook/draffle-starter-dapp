@@ -1,6 +1,7 @@
-import * as anchor from "@project-serum/anchor"
-import { Commitment, Connection, Keypair, PublicKey } from '@solana/web3.js'
-import { DEFAULT_RPC_HOST, DRAFFLE_PROGRAM_ID } from '../lib/constants'
+import * as draffle from "../lib/draffle"
+import { Commitment, Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
+import { DEFAULT_RPC_HOST, DEFAULT_PROGRAM_ID, ENTRANTS_ACCOUNT_SIZE } from '../lib/constants'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { program as cli } from 'commander'
 
 interface Args {
@@ -11,25 +12,12 @@ interface Args {
 
 async function connect() {
     const args = cli.opts<Args>()
+    const payer = Keypair.generate() // TODO make this an arg
 
-    const programId = new PublicKey(args.programId)
-    const connection = new Connection(args.rpcHost, args.commitment)
-
-    const wallet = new anchor.Wallet(Keypair.generate()) // TODO from args?
-
-    const provider = new anchor.Provider(connection, wallet, {
-        skipPreflight: true
+    return draffle.connect({
+        payer,
+        ...args
     })
-
-    const idl = await anchor.Program.fetchIdl(programId, provider)
-
-    const program = new anchor.Program(idl!, programId, provider)
-
-    return {
-        idl,
-        program,
-        programId,
-    }
 }
 
 async function showIDL() {
@@ -39,7 +27,42 @@ async function showIDL() {
 }
 
 async function createRaffle() {
-    console.log('create-raffle')
+    const { connection, payer, program, programId } = await connect()
+
+    const entrants = Keypair.generate()
+
+    const raffle = await draffle.findRaffle(entrants.publicKey, programId)
+
+    const proceeds = await draffle.findProceeds(raffle, programId)
+
+    // TODO: this rent could be smarter, based on maxEntrants, right?
+    const entrantsRent = await connection.getMinimumBalanceForRentExemption(ENTRANTS_ACCOUNT_SIZE);
+
+    await program.rpc.createRaffle({
+        accounts: {
+            raffle,
+            entrants: entrants.publicKey,
+            creator: payer.publicKey,
+            // proceeds: TODO,
+            // proceedsMint: TODO,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+        },
+        signers: [
+            payer
+        ],
+        instructions: [
+            SystemProgram.createAccount({
+                fromPubkey: payer.publicKey,
+                newAccountPubkey: raffle,
+                lamports: entrantsRent,
+                programId: program.programId,
+                space: ENTRANTS_ACCOUNT_SIZE,
+            }),
+        ]
+    });
+
+
     process.exit(0)
 }
 
@@ -71,9 +94,9 @@ async function collectProceeds() {
 
 cli
     .addHelpCommand()
-    .requiredOption('-c, --commitment [string]', 'commitment', 'confirmed')
+    .requiredOption('-c, --commitment [string]', 'commitment', 'recent')
     .requiredOption('-r, --rpc-host [string]', 'rpc host', DEFAULT_RPC_HOST)
-    .requiredOption('-p, --program-id [string]', 'draffle program id', DRAFFLE_PROGRAM_ID)
+    .requiredOption('-p, --program-id [string]', 'draffle program id', DEFAULT_PROGRAM_ID)
 
 cli
     .command('show-idl')
@@ -115,4 +138,6 @@ cli
     .description('collect proceeds')
     .action(collectProceeds);
 
-(async () => { await cli.parseAsync(process.argv) })();
+(async () => {
+    await cli.parseAsync(process.argv)
+})();
