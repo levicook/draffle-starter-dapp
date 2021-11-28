@@ -1,8 +1,9 @@
+import * as anchor from "@project-serum/anchor"
 import * as draffle from "../lib/draffle"
-import { Commitment, Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
+import { Commitment, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from '@solana/web3.js'
 import { DEFAULT_RPC_HOST, DEFAULT_PROGRAM_ID, ENTRANTS_ACCOUNT_SIZE } from '../lib/constants'
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { program as cli } from 'commander'
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
 
 interface Args {
     commitment: Commitment,
@@ -29,39 +30,58 @@ async function showIDL() {
 async function createRaffle() {
     const { connection, payer, program, programId } = await connect()
 
-    const entrants = Keypair.generate()
+    const entrants = Keypair.generate() // TODO accept from args
+    console.log('Entrants address', entrants.publicKey.toBase58())
 
     const raffle = await draffle.findRaffle(entrants.publicKey, programId)
+    console.log('Raffle address', raffle.toBase58())
 
     const proceeds = await draffle.findProceeds(raffle, programId)
+    console.log('proceeds address', proceeds.toBase58())
 
-    // TODO: this rent could be smarter, based on maxEntrants, right?
-    const entrantsRent = await connection.getMinimumBalanceForRentExemption(ENTRANTS_ACCOUNT_SIZE);
+    const proceedsMint = Keypair.generate()
+    console.log('proceedsMint address', proceedsMint.publicKey.toBase58())
 
-    await program.rpc.createRaffle({
-        accounts: {
-            raffle,
-            entrants: entrants.publicKey,
-            creator: payer.publicKey,
-            // proceeds: TODO,
-            // proceedsMint: TODO,
-            systemProgram: SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-        },
-        signers: [
-            payer
-        ],
-        instructions: [
-            SystemProgram.createAccount({
-                fromPubkey: payer.publicKey,
-                newAccountPubkey: raffle,
-                lamports: entrantsRent,
-                programId: program.programId,
-                space: ENTRANTS_ACCOUNT_SIZE,
-            }),
-        ]
-    });
+    const instructions = [
+        ...await draffle.initEntrants(connection, entrants, payer, programId),
+        ...await draffle.initMint(connection, payer, proceedsMint),
+    ];
 
+    const tx = new Transaction()
+    instructions.forEach(ix => tx.add(ix))
+
+    const sig1 = await connection.sendTransaction(tx, [
+        payer,
+        entrants,
+        proceedsMint,
+    ])
+    console.error('sig1', await connection.confirmTransaction(sig1))
+
+    const endTimestamp = new anchor.BN(1638071889051)
+    const ticketPrice = new anchor.BN(1234)
+    const maxEntrants = new anchor.BN(5000)
+
+    const sig2 = await program.rpc.createRaffle(
+        endTimestamp,
+        ticketPrice,
+        maxEntrants,
+        {
+            accounts: {
+                raffle,
+                entrants: entrants.publicKey,
+                creator: payer.publicKey,
+                proceeds,
+                proceedsMint: proceedsMint.publicKey,
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                rent: SYSVAR_RENT_PUBKEY,
+            },
+            signers: [
+                payer
+            ],
+        }
+    )
+    console.error('sig2', await connection.confirmTransaction(sig2))
 
     process.exit(0)
 }
